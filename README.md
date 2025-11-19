@@ -4,7 +4,7 @@ Practicals for the IPCV lecture on digital geometry processing.
 
 ![DGtal logo](https://github.com/DGtal-team/DGtal/blob/main/doc/images/logoDGtal-small.png)
 
-They are mainly based on a tutorial given at DGMM2022, see https://github.com/DGtal-team/DGtal-Tutorials-DGMM2022, and were written by
+They are mainly based on a tutorial given at DGMM2022. Their original versions were written by
 
 * [David Coeurjolly](https://perso.liris.cnrs.fr/david.coeurjolly)
 * [Jacques-Olivier Lachaud](http://www.lama.univ-savoie.fr/pagesmembres/lachaud/People/LACHAUD-JO/person.html)
@@ -60,6 +60,8 @@ make
 By default, `cmake` will clone a copy of the DGtal repository, set up all the dependencies and build a first `helloworld` program.
 
 ## The tutorials
+
+After cloning the code, you may now have a look at each practical
 
 - [Homotopic thinning](https://codimd.math.cnrs.fr/s/kWlvA1TG8)
 - [2D estimation](https://codimd.math.cnrs.fr/s/G4qG3UGw7)
