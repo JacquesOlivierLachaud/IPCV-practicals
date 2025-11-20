@@ -1,13 +1,21 @@
-project(DGtal-DGMM2022-tutorials)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.20)
+project(IPCV-tutorials)
 
-cmake_minimum_required (VERSION 3.14)
-list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
-
-set(CMAKE_CXX_STANDARD 11)
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/recipes)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(dgtal)
 include(polyscope)
+
+
+# list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+
+# set(CMAKE_CXX_STANDARD 17)
+# set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# include(dgtal)
+# include(polyscope)
 
 include_directories(${DGTAL_INCLUDE_DIRS})
 include_directories(${PROJECT_SOURCE_DIR})
