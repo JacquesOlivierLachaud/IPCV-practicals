@@ -62,6 +62,7 @@ void registerDigitalSurface( CountedPtr< SH3::BinaryImage > bimage,
 // returns 'true' iff all the points of \a object are simple.
 bool oneStep( CountedPtr< Z3i::Object26_6 > object )
 {
+  DigitalSet & S = object->pointSet(); // get lattice points (ie voxels)
   /*
   *
   *

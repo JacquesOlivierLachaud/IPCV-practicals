@@ -24,10 +24,53 @@ To get the code, the easiest way is to `clone` the github repository. E.g. with 
 git clone https://github.com/JacquesOlivierLachaud/IPCV-practicals
 ```
 
-
-(You can also use your favorite GUI git client).
-
 ## First build
+
+To build DGtal related examples, you would need:
+  - C++17 enabled compiler (most c++ compilers are C+17)
+  - a [cmake](https://cmake.org) client (at least 3.25)
+  
+
+After cloning IPCV-practicals, set-up the compiling environment in a terminal with
+```
+cd IPCV-practicals
+mkdir build
+cd build
+# configure the compilation in Release mode (for performance).
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5 ..
+```
+
+It will automatically download `boost`, `eigen`, `polyscope` and `dgtal`.
+This should finish with the following lines:
+```
+-- Configuring done (1.9s)
+-- Generating done (0.1s)
+-- Build files have been written to: ${HOME}/.../IPCV-practicals/build
+```
+
+After that just type `make` to compile all the provided programs,
+which are the skeleton c++ files of the different practicals.
+
+
+## The tutorials
+
+After cloning the code, you may now have a look at each practical
+
+- [Homotopic thinning](https://codimd.math.cnrs.fr/s/kWlvA1TG8)
+- [2D estimation](https://codimd.math.cnrs.fr/s/G4qG3UGw7)
+- [Geometric estimations on 3D surfaces](https://codimd.math.cnrs.fr/s/s2pNRQuga)
+- [Digital Scale Axis Transform](https://codimd.math.cnrs.fr/s/Qr5Sz3wZ-)
+- [Choose-your-own-adventure practical](https://codimd.math.cnrs.fr/s/ECHVYx8TE)
+
+
+## Troubleshooting
+
+:::spoiler
+
+Normally, `cmake` should install automatically `DGtal` and required
+dependencies like `boost`, `zlib`, `polyscope`, `eigen`. However I
+have not checked if this work on all platforms. Here are a few more
+hints for specialized installations.
 
 To build DGtal related examples, you would need:
   - C++17 enabled compiler (most c++ compilers are C+17)
@@ -39,7 +82,6 @@ On linux, deps could be installed with:
 ```
 sudo apt-get cmake git libboost-all-dev build-essential
 ```
-
 
 For windows users, you can follow these [installation](https://github.com/DGtal-team/DGtal-Tutorials-DGMM2022/blob/main/windowsDGtalInstall.md) steps.
 
@@ -58,13 +100,4 @@ make
 
 
 By default, `cmake` will clone a copy of the DGtal repository, set up all the dependencies and build a first `helloworld` program.
-
-## The tutorials
-
-After cloning the code, you may now have a look at each practical
-
-- [Homotopic thinning](https://codimd.math.cnrs.fr/s/kWlvA1TG8)
-- [2D estimation](https://codimd.math.cnrs.fr/s/G4qG3UGw7)
-- [Geometric estimations on 3D surfaces](https://codimd.math.cnrs.fr/s/s2pNRQuga)
-- [Digital Scale Axis Transform](https://codimd.math.cnrs.fr/s/Qr5Sz3wZ-)
-- [Choose-your-own-adventure practical](https://codimd.math.cnrs.fr/s/ECHVYx8TE)
+:::
