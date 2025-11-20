@@ -38,7 +38,7 @@ void registerDigitalSurface( CountedPtr< SH3::BinaryImage > bimage,
 {
   auto params = SH3::defaultParameters() | SHG3::defaultParameters() |  SHG3::parametersGeometryEstimation();
   auto h=1.; //gridstep
-  params( "closed", 1)("surfaceComponents", "AnyBig");
+  params( "closed", 1)("surfaceComponents", "All");
   auto K             = SH3::getKSpace( bimage );
   auto surface       = SH3::makeDigitalSurface( bimage, K, params );
   auto primalSurface = SH3::makePrimalSurfaceMesh(surface);
@@ -59,6 +59,7 @@ void registerDigitalSurface( CountedPtr< SH3::BinaryImage > bimage,
 }
 
 // Removes a peel of simple points onto voxel object.
+// returns 'true' iff all the points of \a object are simple.
 bool oneStep( CountedPtr< Z3i::Object26_6 > object )
 {
   /*
