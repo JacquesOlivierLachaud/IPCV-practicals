@@ -48,9 +48,20 @@ This should finish with the following lines:
 -- Build files have been written to: ${HOME}/.../IPCV-practicals/build
 ```
 
-After that just type `make` to compile all the provided programs,
-which are the skeleton c++ files of the different practicals.
+After that just type `make` to compile all the provided programs, some
+are examples, others are the skeleton c++ files of the different
+practicals.
 
+## Data
+
+A few 3D vol images are provided in `data` subdirectory. You may have a look at some binary or gray-level 3d image with `volViewer`. In `build` directory, you may try:
+
+```
+# A 3d shape (binary image)
+./volViewer ../data/fertility-128.vol
+# A thoracic CT scan, showing fat, lungs, heart, and the pulmonary vascular system.
+./volViewer ../data/PA05-img-low.vol
+```
 
 ## The tutorials
 
