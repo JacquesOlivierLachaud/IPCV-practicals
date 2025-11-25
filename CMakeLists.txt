@@ -20,6 +20,9 @@ target_link_libraries(exampleBoard2D ${DGTAL_LIBRARIES})
 add_executable(examplePolyscope examplePolyscope.cpp)
 target_link_libraries(examplePolyscope ${DGTAL_LIBRARIES} polyscope)
 
+add_executable(volViewer volViewer.cpp)
+target_link_libraries(volViewer ${DGTAL_LIBRARIES} polyscope)
+
 
 
 ## Practicals

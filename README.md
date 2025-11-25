@@ -56,7 +56,7 @@ which are the skeleton c++ files of the different practicals.
 
 After cloning the code, you may now have a look at each practical
 
-- [Homotopic thinning](https://codimd.math.cnrs.fr/s/kWlvA1TG8)
+- [Homotopic thinning](https://codimd.math.cnrs.fr/s/bVqUMFbM5)
 - [2D estimation](https://codimd.math.cnrs.fr/s/G4qG3UGw7)
 - [Geometric estimations on 3D surfaces](https://codimd.math.cnrs.fr/s/s2pNRQuga)
 - [Digital Scale Axis Transform](https://codimd.math.cnrs.fr/s/Qr5Sz3wZ-)
@@ -64,8 +64,6 @@ After cloning the code, you may now have a look at each practical
 
 
 ## Troubleshooting
-
-:::spoiler
 
 Normally, `cmake` should install automatically `DGtal` and required
 dependencies like `boost`, `zlib`, `polyscope`, `eigen`. However I
@@ -100,4 +98,3 @@ make
 
 
 By default, `cmake` will clone a copy of the DGtal repository, set up all the dependencies and build a first `helloworld` program.
-:::
