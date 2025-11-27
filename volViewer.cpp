@@ -47,40 +47,80 @@ bool slice_y = true;
 bool slice_z = true;
 
 polyscope::SurfaceMesh*
-buildSlice( std::string name, Point lo, Point up )
+buildInitialSlice( std::string name, Point lo, Point up, int axis )
 {
-  Domain domain( lo - Point::diagonal(1), up + Point::diagonal(1) );
-  KSpace sliceK( lo - Point::diagonal(1), up + Point::diagonal(1), true );
-  auto slice_image  = CountedPtr<SH3::BinaryImage>( new SH3::BinaryImage( domain ) );
-  std::transform( domain.begin(), domain.end(),
-                  slice_image->begin(),
-                  [&] ( const Point& p ) {
-                    return p.inf( lo ) == lo && p.sup( up ) == up;
-                  } );
-  params( "thresholdMin", 0 )( "thresholdMax", 255 );
-  auto surface = SH3::makeDigitalSurface( slice_image, sliceK, params );
-  auto primalSurface = SH3::makePrimalSurfaceMesh( surface );
-  std::vector<std::vector<size_t>> faces;
-  // Need to convert the faces
-  for( size_t face= 0 ; face < primalSurface->nbFaces(); ++face )
-    faces.push_back( primalSurface->incidentVertices( face ) );
-  std::vector<RealPoint> positions = primalSurface->positions();
-  // Color the faces
-  auto surfels = SH3::getSurfelRange( surface );
-  std::vector< double > colors( surfels.size() );
-  for( size_t i = 0; i < surfels.size(); ++i )
+  Point slo = lo;
+  Point sup = up;
+  sup[ axis ] = lo[ axis ];
+  Point s = sup - slo + Point::diagonal(1);
+  Point t = s + Point::diagonal(1);
+  const int nb_faces    = s[ 0 ] * s[ 1 ] * s[ 2 ];
+  const int nb_vertices = t[ 0 ] * t[ 1 ] * t[ 2 ];
+  std::vector<RealPoint> positions( nb_vertices, RealPoint::zero );
+  int i = ( axis == 0 ) ? 1 : 0; // first axis
+  int j = ( axis == 2 ) ? 1 : 2; // second axis
+  int idx = 0;
+  RealPoint current;
+  current[ axis ] = lo[ axis ] + 0.5;
+  for ( int y = lo[ j ]; y <= up[ j ] + 1; y++ )
     {
-      auto    s   = surfels[ i ];  // current surfel
-      auto    k   = sliceK.sOrthDir( s );  // its orthogonal direction
-      auto    vox = sliceK.sDirectIncident( s, k ); // the incident (interior) voxel
-      auto    p   = sliceK.sCoords( vox ); // the coordinates of the voxel
-      colors[ i ] = (*gray_scale_image)( p ); // get value of voxel
+      current[ j ] = y;
+      for ( int x = lo[ i ]; x <= up[ i ] + 1; x++ )
+        {
+          current[ i ] = x;
+          positions[ idx++ ] = current;
+        }
     }
-  auto sliceSurf = polyscope::registerSurfaceMesh( name, positions, faces);
-  sliceSurf->addFaceScalarQuantity( "image intensities", colors )
+  idx = 0;
+  std::vector<std::vector<size_t>> faces( nb_faces );
+  for ( size_t y = lo[ j ]; y <= up[ j ]; y++ )
+    for ( size_t x = lo[ i ]; x <= up[ i ]; x++ )
+      faces[ idx++ ] = std::vector<size_t>( {
+          t[ i ] * y + x,
+          t[ i ] * y + x + 1,
+          t[ i ] * ( y + 1 ) + x + 1,
+          t[ i ] * ( y + 1 ) + x
+        } );
+  return polyscope::registerSurfaceMesh( name, positions, faces);
+}
+  
+void
+updateSlice( CountedPtr<SH3::GrayScaleImage> image,
+             polyscope::SurfaceMesh* smesh, Point lo, Point up,
+             int axis, int pos )
+{
+  Point slo = lo;
+  Point sup = up;
+  sup[ axis ] = pos;
+  slo[ axis ] = pos;
+  Point s = sup - slo + Point::diagonal(1);
+  Point t = s + Point::diagonal(1);
+  const int nb_faces    = s[ 0 ] * s[ 1 ] * s[ 2 ];
+  const int nb_vertices = t[ 0 ] * t[ 1 ] * t[ 2 ];
+  std::vector<RealPoint> positions( nb_vertices );
+  int i = ( axis == 0 ) ? 1 : 0; // first axis
+  int j = ( axis == 2 ) ? 1 : 2; // second axis
+  int idx = 0;
+  RealPoint current;
+  current[ axis ] = pos + 0.5;
+  for ( int y = lo[ j ]; y <= up[ j ] + 1; y++ )
+    {
+      current[ j ] = y;
+      for ( int x = lo[ i ]; x <= up[ i ] + 1; x++ )
+        {
+          current[ i ] = x;
+          positions[ idx++ ] = current;
+        }
+    }
+  std::vector< double > colors( nb_faces );
+  Domain D( slo, sup );
+  idx = 0;
+  for ( auto p : D )
+    colors[ idx++ ] = (*image)(p);
+  smesh->updateVertexPositions( positions );
+  smesh->addFaceScalarQuantity( "image intensities", colors )
     ->setMapRange( { 0.0, 255.0 } )
     ->setEnabled( true );
-  return sliceSurf;
 }
 
 void extractDigitalSurface( int t )
@@ -146,23 +186,11 @@ void mycallback()
   ImGui::SameLine();
   ImGui::Checkbox("Slice Z", &slice_z);
   if ( slice_x && (lx != x) )
-    {
-      Point slo = lo, sup = up;
-      slo[0] = sup[0] = x;
-      sliceXSurf = buildSlice( "Slice X", slo, sup );
-    }
+    updateSlice( gray_scale_image, sliceXSurf, lo, up, 0, x );
   if ( slice_y && (ly != y) )
-    {
-      Point slo = lo, sup = up;
-      slo[1] = sup[1] = y;
-      sliceYSurf = buildSlice( "Slice Y", slo, sup );
-    }
+    updateSlice( gray_scale_image, sliceYSurf, lo, up, 1, y );
   if ( slice_z && (lz != z) )
-    {
-      Point slo = lo, sup = up;
-      slo[2] = sup[2] = z;
-      sliceZSurf = buildSlice( "Slice Z", slo, sup );
-    }
+    updateSlice( gray_scale_image, sliceZSurf, lo, up, 2, z );
   lx = x;
   ly = y;
   lz = z;
@@ -186,7 +214,12 @@ int main( int argc, char* argv[] )
   params( "closed", 1)("surfaceComponents", "All");
   gray_scale_image  = SH3::makeGrayScaleImage( filename );  
   K = SH3::getKSpace( gray_scale_image );
-  extractIsosurface( threshold ); 
+  Point lo = K.lowerBound();
+  Point up = K.upperBound();
+  sliceXSurf = buildInitialSlice( "Slice X", lo, up, 0 );
+  sliceYSurf = buildInitialSlice( "Slice Y", lo, up, 1 );
+  sliceZSurf = buildInitialSlice( "Slice Z", lo, up, 2 );
+  // extractIsosurface( threshold ); 
   // Give the hand to polyscope
   polyscope::state::userCallback = mycallback;
   polyscope::show();
