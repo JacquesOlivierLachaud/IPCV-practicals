@@ -123,6 +123,44 @@ updateSlice( CountedPtr<SH3::GrayScaleImage> image,
     ->setEnabled( true );
 }
 
+// // Slower version
+// polyscope::SurfaceMesh*
+// buildSlice( std::string name, Point lo, Point up )
+// {
+//   Domain domain( lo - Point::diagonal(1), up + Point::diagonal(1) );
+//   KSpace sliceK( lo - Point::diagonal(1), up + Point::diagonal(1), true );
+//   auto slice_image  = CountedPtr<SH3::BinaryImage>( new SH3::BinaryImage( domain ) );
+//   std::transform( domain.begin(), domain.end(),
+//                   slice_image->begin(),
+//                   [&] ( const Point& p ) {
+//                     return p.inf( lo ) == lo && p.sup( up ) == up;
+//                   } );
+//   params( "thresholdMin", 0 )( "thresholdMax", 255 )("surfaceComponents", "AnyBig");
+//   auto surface = SH3::makeDigitalSurface( slice_image, sliceK, params );
+//   auto primalSurface = SH3::makePrimalSurfaceMesh( surface );
+//   std::vector<std::vector<size_t>> faces;
+//   // Need to convert the faces
+//   for( size_t face= 0 ; face < primalSurface->nbFaces(); ++face )
+//     faces.push_back( primalSurface->incidentVertices( face ) );
+//   std::vector<RealPoint> positions = primalSurface->positions();
+//   // Color the faces
+//   auto surfels = SH3::getSurfelRange( surface );
+//   std::vector< double > colors( surfels.size() );
+//   for( size_t i = 0; i < surfels.size(); ++i )
+//     {
+//       auto    s   = surfels[ i ];  // current surfel
+//       auto    k   = sliceK.sOrthDir( s );  // its orthogonal direction
+//       auto    vox = sliceK.sDirectIncident( s, k ); // the incident (interior) voxel
+//       auto    p   = sliceK.sCoords( vox ); // the coordinates of the voxel
+//       colors[ i ] = (*gray_scale_image)( p ); // get value of voxel
+//     }
+//   auto sliceSurf = polyscope::registerSurfaceMesh( name, positions, faces);
+//   sliceSurf->addFaceScalarQuantity( "image intensities", colors )
+//     ->setMapRange( { 0.0, 255.0 } )
+//     ->setEnabled( true );
+//   return sliceSurf;
+// }
+
 void extractDigitalSurface( int t )
 {
   trace.beginBlock( "Extracting digital surface" );
