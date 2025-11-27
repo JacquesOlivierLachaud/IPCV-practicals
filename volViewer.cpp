@@ -31,7 +31,7 @@ CountedPtr< SH3::GrayScaleImage > gray_scale_image;
 Parameters params;
 
 // Global variables for GUI
-int threshold = 128;
+int threshold = 127;
 polyscope::SurfaceMesh* triSurf;
 polyscope::SurfaceMesh* sliceXSurf;
 polyscope::SurfaceMesh* sliceYSurf;
@@ -77,7 +77,9 @@ buildSlice( std::string name, Point lo, Point up )
       colors[ i ] = (*gray_scale_image)( p ); // get value of voxel
     }
   auto sliceSurf = polyscope::registerSurfaceMesh( name, positions, faces);
-  sliceSurf->addFaceScalarQuantity( "image intensities", colors )->setEnabled( true );
+  sliceSurf->addFaceScalarQuantity( "image intensities", colors )
+    ->setMapRange( { 0.0, 255.0 } )
+    ->setEnabled( true );
   return sliceSurf;
 }
 

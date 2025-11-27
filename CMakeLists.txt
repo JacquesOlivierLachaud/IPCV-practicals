@@ -12,34 +12,37 @@ include_directories(${DGTAL_INCLUDE_DIRS})
 include_directories(${PROJECT_SOURCE_DIR})
 
 add_executable(helloworld helloworld.cpp)
-target_link_libraries(helloworld ${DGTAL_LIBRARIES})
+target_link_libraries(helloworld DGtal::DGtal)
 
 add_executable(exampleBoard2D exampleBoard2D.cpp)
-target_link_libraries(exampleBoard2D ${DGTAL_LIBRARIES})
+target_link_libraries(exampleBoard2D DGtal::DGtal)
 
 add_executable(examplePolyscope examplePolyscope.cpp)
-target_link_libraries(examplePolyscope ${DGTAL_LIBRARIES} polyscope)
+target_link_libraries(examplePolyscope DGtal::DGtal polyscope)
 
 add_executable(volViewer volViewer.cpp)
-target_link_libraries(volViewer ${DGTAL_LIBRARIES} polyscope)
+target_link_libraries(volViewer DGtal::DGtal polyscope)
 
 
 
 ## Practicals
 
+add_executable(vol-filter practical-filtering/vol-filter.cpp)
+target_link_libraries(vol-filter DGtal::DGtal polyscope)
+
 add_executable(homotopic-thinning practical-homotopic-thinning/homotopic-thinning.cpp)
-target_link_libraries(homotopic-thinning ${DGTAL_LIBRARIES} polyscope)
+target_link_libraries(homotopic-thinning DGtal::DGtal polyscope)
 
 add_executable(scaleaxis practical-scaleaxis/scaleaxis.cpp)
-target_link_libraries(scaleaxis ${DGTAL_LIBRARIES} polyscope)
+target_link_libraries(scaleaxis DGtal::DGtal polyscope)
 
 add_executable(2D-estimation-template practical-2D-estimation/2D-estimation-template.cpp)
-target_link_libraries(2D-estimation-template ${DGTAL_LIBRARIES})
+target_link_libraries(2D-estimation-template DGtal::DGtal)
 
 add_executable(3D-estimation-template practical-3D-estimation/3D-estimation-template.cpp)
-target_link_libraries(3D-estimation-template ${DGTAL_LIBRARIES} polyscope)
+target_link_libraries(3D-estimation-template DGtal::DGtal polyscope)
 
 #add_executable(3D-estimation practical-3D-estimation/answers/3D-estimation.cpp)
-#target_link_libraries(3D-estimation ${DGTAL_LIBRARIES} polyscope)
+#target_link_libraries(3D-estimation DGtal::DGtal polyscope)
 
 

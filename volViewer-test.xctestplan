@@ -1,0 +1,22 @@
+{
+  "configurations" : [
+    {
+      "id" : "04EC8029-0605-44A5-894C-25F02243F691",
+      "name" : "Configuration 1",
+      "options" : {
+        "commandLineArgumentEntries" : [
+          {
+            "argument" : "..\/data\/PA05-lbl.vol"
+          }
+        ]
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "testTimeoutsEnabled" : true
+  },
+  "testTargets" : [
+
+  ],
+  "version" : 1
+}

@@ -61,6 +61,8 @@ A few 3D vol images are provided in `data` subdirectory. You may have a look at 
 ./volViewer ../data/fertility-128.vol
 # A thoracic CT scan, showing fat, lungs, heart, and the pulmonary vascular system.
 ./volViewer ../data/PA05-img-low.vol
+# The segmentation of its pulmonary vascular system.
+./volViewer ../data/PA05-lbl-low.vol
 ```
 
 ## The tutorials
