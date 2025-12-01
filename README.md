@@ -69,11 +69,13 @@ A few 3D vol images are provided in `data` subdirectory. You may have a look at 
 
 After cloning the code, you may now have a look at each practical
 
-- [Homotopic thinning](https://codimd.math.cnrs.fr/s/bVqUMFbM5)
-- [2D estimation](https://codimd.math.cnrs.fr/s/G4qG3UGw7)
-- [Geometric estimations on 3D surfaces](https://codimd.math.cnrs.fr/s/s2pNRQuga)
-- [Digital Scale Axis Transform](https://codimd.math.cnrs.fr/s/Qr5Sz3wZ-)
-- [Choose-your-own-adventure practical](https://codimd.math.cnrs.fr/s/ECHVYx8TE)
+* TP1 [Filtering and segmentation of 3D CT thoracic image](https://codimd.math.cnrs.fr/s/VSydn_j1G)
+    > (ready) 3d image filtering, digital surfaces
+* TP2 [Homotopic thinning](https://codimd.math.cnrs.fr/s/bVqUMFbM5) (wip)
+    > (wip) 3d shapes, digital topology, cubical complexes
+
+* TP3 [Geometric estimations on 3d digital surfaces](https://codimd.math.cnrs.fr/s/s2pNRQuga)
+    > (ready) 3d shapes, geometric estimators, multigrid convergence
 
 
 ## Troubleshooting
