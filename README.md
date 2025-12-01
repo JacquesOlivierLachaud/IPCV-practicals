@@ -4,12 +4,7 @@ Practicals for the IPCV lecture on digital geometry processing.
 
 ![DGtal logo](https://github.com/DGtal-team/DGtal/blob/main/doc/images/logoDGtal-small.png)
 
-They are mainly based on a tutorial given at DGMM2022. Their original versions were written by
-
-* [David Coeurjolly](https://perso.liris.cnrs.fr/david.coeurjolly)
-* [Jacques-Olivier Lachaud](http://www.lama.univ-savoie.fr/pagesmembres/lachaud/People/LACHAUD-JO/person.html)
-* [Tristan Roussillon](https://perso.liris.cnrs.fr/tristan.roussillon/)
-* [Bertrand Kerautret](https://liris.cnrs.fr/page-membre/bertrand-kerautret)
+Slides and several practicals are  based on a tutorial given at DGMM2022. Their original versions were written by [David Coeurjolly](https://perso.liris.cnrs.fr/david.coeurjolly), [Jacques-Olivier Lachaud](http://www.lama.univ-savoie.fr/pagesmembres/lachaud/People/LACHAUD-JO/person.html), [Tristan Roussillon](https://perso.liris.cnrs.fr/tristan.roussillon/), [Bertrand Kerautret](https://liris.cnrs.fr/page-membre/bertrand-kerautret).
 
 ## The slides
 
@@ -18,7 +13,7 @@ They are mainly based on a tutorial given at DGMM2022. Their original versions w
  
 ## Get the code
 
-To get the code, the easiest way is to `clone` the github repository. E.g. with the command-line git client:
+To get the code, the easiest way is to `clone` the github repository somewhere in your HOME directory. E.g. with the command-line git client:
 
 ```
 git clone https://github.com/JacquesOlivierLachaud/IPCV-practicals
@@ -27,7 +22,7 @@ git clone https://github.com/JacquesOlivierLachaud/IPCV-practicals
 ## First build
 
 To build DGtal related examples, you would need:
-  - C++17 enabled compiler (most c++ compilers are C+17)
+  - C++17 enabled compiler (most c++ compilers are C++17)
   - a [cmake](https://cmake.org) client (at least 3.25)
   
 
