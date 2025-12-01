@@ -108,4 +108,4 @@ make
 (`cmake .. -G Xcode` for an Xcode project, or `cmake .. -G "CodeBlocks - Unix Makefiles"` for a codeblocks one, or VisualStudio on MS Windows using the GUI)
 
 
-By default, `cmake` will clone a copy of the DGtal repository, set up all the dependencies and build a first `helloworld` program.
+By default, `cmake` will clone a copy of the DGtal repository, set up all the dependencies and build several programs (`helloworld`, etc).
