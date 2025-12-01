@@ -36,11 +36,11 @@ target_link_libraries(homotopic-thinning DGtal::DGtal polyscope)
 add_executable(scaleaxis practical-scaleaxis/scaleaxis.cpp)
 target_link_libraries(scaleaxis DGtal::DGtal polyscope)
 
-add_executable(2D-estimation-template practical-2D-estimation/2D-estimation-template.cpp)
-target_link_libraries(2D-estimation-template DGtal::DGtal)
+add_executable(2D-estimation practical-2D-estimation/2D-estimation.cpp)
+target_link_libraries(2D-estimation DGtal::DGtal)
 
-add_executable(3D-estimation-template practical-3D-estimation/3D-estimation-template.cpp)
-target_link_libraries(3D-estimation-template DGtal::DGtal polyscope)
+add_executable(3D-estimation practical-3D-estimation/3D-estimation.cpp)
+target_link_libraries(3D-estimation DGtal::DGtal polyscope)
 
 #add_executable(3D-estimation practical-3D-estimation/answers/3D-estimation.cpp)
 #target_link_libraries(3D-estimation DGtal::DGtal polyscope)

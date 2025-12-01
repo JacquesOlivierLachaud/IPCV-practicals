@@ -27,7 +27,9 @@ typedef SurfaceMesh< Z3i::RealPoint, Z3i::RealVector >         SurfMesh;
 // Global variables
 KSpace                            K; // the space for the image
 CountedPtr< SH3::BinaryImage >    binary_image;
-CountedPtr< SH3::GrayScaleImage > gray_scale_image;
+CountedPtr< SH3::GrayScaleImage > current_image;
+CountedPtr< SH3::GrayScaleImage > first_image;
+CountedPtr< SH3::GrayScaleImage > second_image;
 Parameters params;
 
 // Global variables for GUI
@@ -45,6 +47,9 @@ int z  = 0;
 bool slice_x = true;
 bool slice_y = true;
 bool slice_z = true;
+bool refresh = true;
+int      img_choice = 0;
+int last_img_choice = -1;
 
 polyscope::SurfaceMesh*
 buildInitialSlice( std::string name, Point lo, Point up, int axis )
@@ -161,15 +166,16 @@ updateSlice( CountedPtr<SH3::GrayScaleImage> image,
 //   return sliceSurf;
 // }
 
-void extractDigitalSurface( int t )
+void extractDigitalSurface( CountedPtr<SH3::GrayScaleImage> image,
+                            int t, std::string label )
 {
   trace.beginBlock( "Extracting digital surface" );
   // Builds a thresholded image from a gray scale image
-  Domain domain = gray_scale_image->domain();
+  Domain domain = image->domain();
   binary_image  = CountedPtr<SH3::BinaryImage>( new SH3::BinaryImage( domain ) );
   std::transform( domain.begin(), domain.end(),
                   binary_image->begin(),
-                  [&] ( const Point& p ) { return (*gray_scale_image)(p) > t; } );
+                  [&] ( const Point& p ) { return (*image)(p) > t; } );
   auto surface = SH3::makeDigitalSurface( binary_image, K, params );
   trace.endBlock();
   trace.beginBlock( "Make primal surface" );
@@ -181,14 +187,16 @@ void extractDigitalSurface( int t )
   for( size_t face= 0 ; face < primalSurface->nbFaces(); ++face )
     faces.push_back( primalSurface->incidentVertices( face ) );
   std::vector<RealPoint> positions = primalSurface->positions();
-  auto primalSurf = polyscope::registerSurfaceMesh( "Digital surface", positions, faces);
+  auto primalSurf = polyscope::registerSurfaceMesh
+    ( "Digital surface " + label, positions, faces);
   trace.endBlock();
 }
 
-void extractIsosurface( int t )
+void extractIsosurface( CountedPtr<SH3::GrayScaleImage> image,
+                        int t, std::string label )
 {
   trace.beginBlock( "Extract isosurface" );
-  auto tri  = SH3::makeTriangulatedSurface( gray_scale_image,
+  auto tri  = SH3::makeTriangulatedSurface( image,
                                             params( "thresholdMin", t ) );
   trace.endBlock();
   trace.beginBlock( "Register surface in polyscope" );
@@ -196,22 +204,29 @@ void extractIsosurface( int t )
   // Need to convert the faces
   for( size_t face= 0 ; face < tri->nbFaces(); ++face )
     faces.push_back( tri->verticesAroundFace( face ) );
-  triSurf = polyscope::registerSurfaceMesh( "Isosurface", tri->positions(), faces);
+  triSurf = polyscope::registerSurfaceMesh( "Isosurface " + label, tri->positions(), faces);
   trace.endBlock();
 }
 
 // Polyscope GUI Callback
 void mycallback()
 {
+  ImGui::RadioButton("First image",  &img_choice, 0); ImGui::SameLine();
+  ImGui::RadioButton("Second image", &img_choice, 1); 
+  current_image = img_choice == 0 ? first_image : second_image;
+  if ( last_img_choice != img_choice ) refresh = true;
+  last_img_choice = img_choice;
+  std::string label = img_choice == 0 ? "1" : "2";
+  
   ImGui::SliderInt("Threshold", &threshold, 0, 255 ); //, "ratio = %.3f");
   if (ImGui::Button("Isosurface"))
     {
-      extractIsosurface( threshold );
+      extractIsosurface( current_image, threshold, label );
     }
   ImGui::SameLine();
   if (ImGui::Button("Digital surface"))
     {
-      extractDigitalSurface( threshold );
+      extractDigitalSurface( current_image, threshold, label );
     }
   Point lo = K.lowerBound();
   Point up = K.upperBound();
@@ -223,18 +238,19 @@ void mycallback()
   ImGui::Checkbox("Slice Y", &slice_y);
   ImGui::SameLine();
   ImGui::Checkbox("Slice Z", &slice_z);
-  if ( slice_x && (lx != x) )
-    updateSlice( gray_scale_image, sliceXSurf, lo, up, 0, x );
-  if ( slice_y && (ly != y) )
-    updateSlice( gray_scale_image, sliceYSurf, lo, up, 1, y );
-  if ( slice_z && (lz != z) )
-    updateSlice( gray_scale_image, sliceZSurf, lo, up, 2, z );
+  if ( refresh || ( slice_x && (lx != x) ) )
+    updateSlice( current_image, sliceXSurf, lo, up, 0, x );
+  if ( refresh || ( slice_y && (ly != y) ) )
+    updateSlice( current_image, sliceYSurf, lo, up, 1, y );
+  if ( refresh || ( slice_z && (lz != z) ) )
+    updateSlice( current_image, sliceZSurf, lo, up, 2, z );
   lx = x;
   ly = y;
   lz = z;
   sliceXSurf->setEnabled( slice_x );
   sliceYSurf->setEnabled( slice_y );
   sliceZSurf->setEnabled( slice_z );
+  refresh = false;
 }
 
 // main program
@@ -244,14 +260,17 @@ int main( int argc, char* argv[] )
   
   CLI::App app{"Homotopic Thinning demo"};
   std::string filename;
+  std::string filename2;
   app.add_option("-i,--input,1", filename, "Input VOL file")->required()->check(CLI::ExistingFile);
+  app.add_option("-2,--input2,1", filename2, "2nd Input VOL file")->check(CLI::ExistingFile);
   CLI11_PARSE(app,argc,argv);
   
   // Read voxel object and hands surfaces to polyscope
   params = SH3::defaultParameters()| SHG3::defaultParameters() | SHG3::parametersGeometryEstimation();
   params( "closed", 1)("surfaceComponents", "All");
-  gray_scale_image  = SH3::makeGrayScaleImage( filename );  
-  K = SH3::getKSpace( gray_scale_image );
+  first_image  = SH3::makeGrayScaleImage( filename );  
+  second_image = (filename2 != "") ? SH3::makeGrayScaleImage( filename2 ) : first_image;  
+  K = SH3::getKSpace( first_image );
   Point lo = K.lowerBound();
   Point up = K.upperBound();
   sliceXSurf = buildInitialSlice( "Slice X", lo, up, 0 );
