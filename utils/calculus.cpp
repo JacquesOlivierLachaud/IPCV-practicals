@@ -49,21 +49,36 @@ typedef SurfMesh::Vertices                    Vertices;
 typedef SurfMesh::RealPoint                   RealPoint;
 typedef SurfMesh::Face                   Face;
 typedef SurfMesh::Vertex                  Vertex;
+typedef PolygonalCalculus<SH3::RealPoint,SH3::RealVector> PolyCalculus;
 
-//Polyscope global
-polyscope::SurfaceMesh *psMesh;
-SurfMesh surfmesh;
+// Global variables
+polyscope::SurfaceMesh* psMesh;
+SurfMesh                surfmesh;
+PolyCalculus*           ptrCalculus = nullptr;
+SHG3::RealVectors       tnormals;
+SHG3::RealVectors       iinormals;
+CountedPtr<SH3::DigitalSurface> surface;
+CountedPtr<SH3::BinaryImage>    binary_image;
+Parameters              params;
+
+// Other global variables
 std::vector<double> phiV;
-float scale = 0.1;
+float   radiusII = 3.0;
+float   scale    = 0.1;
+bool useCorrectedCalculus = false;
 
 //Restriction of an ambient scalar function to vertices
 double phiVertex(const Vertex v)
 {
-  return  cos(scale*(surfmesh.position(v)[0]))*sin(scale*surfmesh.position(v)[1]);
+  auto p = surfmesh.position(v);
+  double x,y,z;
+  std::tie(x,y,z) = { p[ 0 ], p[ 1 ], p[ 2 ] };
+  return  0.5*(cos(scale*x)*sin(scale*y)
+               +cos( 2.*scale*z)*sin(0.5*scale*(y-x)));
 }
 
 //Restriction of an ambient scalar function to vertices
-PolygonalCalculus<SH3::RealPoint,SH3::RealVector>::Vector phiFace(const Face f)
+PolyCalculus::Vector phiFace(const Face f)
 {
   auto vertices = surfmesh.incidentVertices(f);
   auto nf = vertices.size();
@@ -88,21 +103,36 @@ void initPhi()
 
 void initQuantities()
 {
-  PolygonalCalculus<SH3::RealPoint,SH3::RealVector> calculus(surfmesh);
+  if ( ptrCalculus != nullptr ) delete ptrCalculus;
+  ptrCalculus = nullptr;
+  if (!useCorrectedCalculus)
+    ptrCalculus = new PolyCalculus(surfmesh);
+  else
+  {
+    //Using the projection embedder
+    ptrCalculus = new PolyCalculus(surfmesh);
+    functors::EmbedderFromNormalVectors<Z3i::RealPoint, Z3i::RealVector> embedderFromNormals(iinormals,surfmesh);
+    ptrCalculus->setEmbedder( embedderFromNormals );
+  }
 
-  std::vector<PolygonalCalculus<SH3::RealPoint,SH3::RealVector>::Vector> gradients;
-  std::vector<PolygonalCalculus<SH3::RealPoint,SH3::RealVector>::Vector> cogradients;
-  std::vector<PolygonalCalculus<SH3::RealPoint,SH3::RealVector>::Real3dVector> normals;
-  std::vector<PolygonalCalculus<SH3::RealPoint,SH3::RealVector>::Real3dVector> vectorArea;
-  std::vector<PolygonalCalculus<SH3::RealPoint,SH3::RealVector>::Real3dPoint> centroids;
+  PolyCalculus& calculus = *ptrCalculus;
+
+  std::vector<PolyCalculus::Real3dVector> gradients;
+  std::vector<PolyCalculus::Vector> cogradients;
+  std::vector<PolyCalculus::Real3dVector> normals;
+  std::vector<PolyCalculus::Real3dVector> vectorArea;
+  std::vector<PolyCalculus::Real3dPoint> centroids;
   std::vector<double> faceArea;
 
   for(auto f=0; f < surfmesh.nbFaces(); ++f)
   {
-    PolygonalCalculus<SH3::RealPoint,SH3::RealVector>::Vector ph = phiFace(f);
-    PolygonalCalculus<SH3::RealPoint,SH3::RealVector>::Vector grad = calculus.gradient(f) * ph;
-    gradients.push_back( grad );
-    PolygonalCalculus<SH3::RealPoint,SH3::RealVector>::Vector cograd =  calculus.coGradient(f) * ph;
+    PolyCalculus::Vector ph = phiFace(f);
+    PolyCalculus::Vector grad = calculus.gradient(f) * ph;
+    PolyCalculus::Real3dVector G( grad[0], grad[1], grad[2] );
+    // Fix length by projecting onto tangent plane
+    // G *= tnormals[ f ].dot( iinormals[ f ] );
+    gradients.push_back( G * calculus.faceArea(f) );
+    PolyCalculus::Vector cograd =  calculus.coGradient(f) * ph;
     cogradients.push_back( cograd );
     normals.push_back(calculus.faceNormalAsDGtalVector(f));
     
@@ -111,7 +141,7 @@ void initQuantities()
     
     faceArea.push_back( calculus.faceArea(f));
     
-    centroids.push_back( calculus.centroidAsDGtalPoint(f) );
+    // centroids.push_back( calculus.centroidAsDGtalPoint(f) );
   }
   
   psMesh->addFaceVectorQuantity("Gradients", gradients);
@@ -120,32 +150,43 @@ void initQuantities()
   psMesh->addFaceScalarQuantity("Face area", faceArea);
   psMesh->addFaceVectorQuantity("Vector area", vectorArea);
   
-  polyscope::registerPointCloud("Centroids", centroids);
+  //polyscope::registerPointCloud("Centroids", centroids);
 }
 
 
 void myCallback()
 {
+  ImGui::Checkbox( "Use corrected calculus", &useCorrectedCalculus );
   ImGui::SliderFloat("Phi scale", &scale, 0., 1.);
   if (ImGui::Button("Init phi"))
     initPhi();
   
   if (ImGui::Button("Compute quantities"))
     initQuantities();
+
   
+  ImGui::SliderFloat("II radius", &radiusII , 0.,10.);
+  if (ImGui::Button("Compute II normals"))
+    {
+      params("r-radius", (double) radiusII);
+      auto surfels   = SH3::getSurfelRange( surface, params );
+      iinormals = SHG3::getIINormalVectors( binary_image, surfels, params );
+      trace.info()<<iinormals.size()<<std::endl;
+      psMesh->addFaceVectorQuantity("II normals", iinormals);
+    }
 }
 
 int main()
 {
-  auto params = SH3::defaultParameters() | SHG3::defaultParameters() |  SHG3::parametersGeometryEstimation();
+  params = SH3::defaultParameters() | SHG3::defaultParameters() |  SHG3::parametersGeometryEstimation();
   
   auto h=.3 ; //gridstep
   params( "polynomial", "goursat" )( "gridstep", h );
   auto implicit_shape  = SH3::makeImplicitShape3D  ( params );
   auto digitized_shape = SH3::makeDigitizedImplicitShape3D( implicit_shape, params );
   auto K               = SH3::getKSpace( params );
-  auto binary_image    = SH3::makeBinaryImage( digitized_shape, params );
-  auto surface         = SH3::makeDigitalSurface( binary_image, K, params );
+  binary_image         = SH3::makeBinaryImage( digitized_shape, params );
+  surface              = SH3::makeDigitalSurface( binary_image, K, params );
   SH3::Cell2Index c2i;
   auto primalSurface   = SH3::makePrimalSurfaceMesh(c2i, surface);
   
@@ -167,6 +208,13 @@ int main()
   
   psMesh = polyscope::registerSurfaceMesh("digital surface", positions, faces);
 
+  params("r-radius", (double) radiusII);
+  auto surfels   = SH3::getSurfelRange( surface, params );
+  tnormals  = SHG3::getTrivialNormalVectors( K, surfels );
+  iinormals = SHG3::getIINormalVectors( binary_image, surfels, params );
+  trace.info()<<iinormals.size()<<std::endl;
+  psMesh->addFaceVectorQuantity("II normals", iinormals);
+  
   // Set the callback function
   polyscope::state::userCallback = myCallback;
   polyscope::show();
