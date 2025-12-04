@@ -1,3 +1,24 @@
+/**
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU Lesser General Public License as
+ *  published by the Free Software Foundation, either version 3 of the
+ *  License, or  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+/**
+ * @file vol-filter.cpp
+ * @author Jacques-Olivier Lachaud (\c jacques-olivier.lachaud@univ-savoie.fr )
+ * Laboratory of Mathematics (CNRS, UMR 5127), University of Savoie, France
+ * @date 2025/12/04
+ */
 #include <iostream>
 #include <vector>
 #include <array>
@@ -28,16 +49,15 @@ typedef SurfaceMesh< Z3i::RealPoint, Z3i::RealVector >         SurfMesh;
 KSpace                            K; // the space for the image
 CountedPtr< SH3::BinaryImage >    binary_image;
 CountedPtr< SH3::GrayScaleImage > current_image;
-CountedPtr< SH3::GrayScaleImage > gray_scale_image;
-CountedPtr< SH3::GrayScaleImage > lung_image;
-CountedPtr< SH3::GrayScaleImage > output_image;
+CountedPtr< SH3::GrayScaleImage > gray_scale_image; // input image
+CountedPtr< SH3::GrayScaleImage > lung_image;       // segmented lungs
+CountedPtr< SH3::GrayScaleImage > output_image;     // output vascular system
 CountedPtr< SH3::LightDigitalSurface > main_surface;
 SH3::SurfelRange all_surfels;
 Parameters params;
 
 // Global variables for GUI
 int threshold = 128;
-polyscope::SurfaceMesh* triSurf;
 polyscope::SurfaceMesh* sliceXSurf;
 polyscope::SurfaceMesh* sliceYSurf;
 polyscope::SurfaceMesh* sliceZSurf;
@@ -142,61 +162,13 @@ fillSurface( const SH3::SurfelRange& surfels,
   Domain D( lo, up );
   // The image is filled with zero at the beginning
   CountedPtr< SH3::GrayScaleImage > output = SH3::makeGrayScaleImage( D );
-  std::queue< Point > Q;
-  for ( auto s : surfels )
-    {
-      auto k = K.sOrthDir( s );
-      auto int_voxel = inverse ? K.sIndirectIncident( s, k ) : K.sDirectIncident( s, k );
-      auto ext_voxel = inverse ? K.sDirectIncident( s, k ) : K.sIndirectIncident( s, k );
-      auto int_p = K.sCoords( int_voxel );
-      auto ext_p = K.sCoords( ext_voxel );
-      Q.push( int_p );
-      output->setValue( ext_p, 1 );
-      output->setValue( int_p, 255 );
-    }
-  Point dv[ 3 ] = { Point( 1,0,0 ), Point( 0,1,0 ), Point( 0,0,1 ) };
-  int n = 0;
-  while ( ! Q.empty() )
-    {
-      if ( n++ % 1000 == 0 ) std::cout << Q.size() << "\n";
-      auto p = Q.front();
-      Q.pop();
-      for ( int i = 0; i < 3; i++ )
-        {
-          const auto q = p - dv[ i ];
-          if ( ( p[ i ] > lo[ i ] ) && ( (*output)( q ) == 0 ) )
-            {
-              Q.push( q );
-              output->setValue( q, 255 );
-            }
-          const auto r = p + dv[ i ];
-          if ( ( p[ i ] < up[ i ] ) && ( (*output)( r ) == 0 ) )
-            {
-              Q.push( r );
-              output->setValue( r, 255 );
-            }
-        }
-    }
+  // TODO
+  // ...
   return output;
 }
 
-
-void extractIsosurface( CountedPtr< SH3::GrayScaleImage > image, int t )
-{
-  trace.beginBlock( "Extract isosurface" );
-  auto tri  = SH3::makeTriangulatedSurface( image,
-                                            params( "thresholdMin", t ) );
-  trace.endBlock();
-  trace.beginBlock( "Register surface in polyscope" );
-  std::vector<std::vector<size_t>> faces;
-  // Need to convert the faces
-  for( size_t face= 0 ; face < tri->nbFaces(); ++face )
-    faces.push_back( tri->verticesAroundFace( face ) );
-  triSurf = polyscope::registerSurfaceMesh( "Isosurface", tri->positions(), faces);
-  trace.endBlock();
-}
-
-void extractDigitalSurface( CountedPtr< SH3::GrayScaleImage > image, int t )
+void extractDigitalSurface( CountedPtr<SH3::GrayScaleImage> image,
+                            int t, std::string label )
 {
   trace.beginBlock( "Extracting digital surface" );
   // Builds a thresholded image from a gray scale image
@@ -205,56 +177,22 @@ void extractDigitalSurface( CountedPtr< SH3::GrayScaleImage > image, int t )
   std::transform( domain.begin(), domain.end(),
                   binary_image->begin(),
                   [&] ( const Point& p ) { return (*image)(p) > t; } );
-  auto surface  = SH3::makeDigitalSurface( binary_image, K, params );
-  // Extracts a vector of connected surfaces.
-  auto vec_surfs= SH3::makeLightDigitalSurfaces( binary_image, K, params );
-  std::sort( vec_surfs.begin(), vec_surfs.end(),
-             [] ( const auto& s1, const auto& s2) -> bool
-             { return s1->size() > s2->size(); } );
-  trace.info() << "#connected components = " << vec_surfs.size() << std::endl;
-  all_surfels.clear();
-  unsigned int n = 0;
-  std::vector<int> V;
-  for ( auto&& surf : vec_surfs ) {
-    // Only process big enough components
-    if ( surf->size() < minimum_size ) break;
-    auto surfels = SH3::getSurfelRange( surf, params );
-    for ( auto&& s : surfels )
-      {
-        all_surfels.push_back( s );
-        V.push_back( n );
-      }
-    n += 1;
-  }
-  vec_surfs.resize( n );
-  trace.info() << "#connected components = " << vec_surfs.size()
-               << " after filtering" << std::endl;
+  auto surface = SH3::makeDigitalSurface( binary_image, K, params );
   trace.endBlock();
+  trace.beginBlock( "Make primal surface" );
+  auto primalSurface = SH3::makePrimalSurfaceMesh( surface );
+  trace.endBlock();
+  // Builds a polyscope surface from a pointer on a dgtal SurfaceMesh.
   trace.beginBlock( "Register surface in polyscope" );
-  std::vector<RealPoint>           positions;
   std::vector<std::vector<size_t>> faces;
-  positions.reserve( V.size() + 1000 );
-  faces.reserve( V.size() );
-  for ( auto&& surf : vec_surfs )
-    {
-      std::size_t base_idx = positions.size();
-      auto   primalSurface = SH3::makePrimalSurfaceMesh( surf );
-      auto  surf_positions = primalSurface->positions();
-      for ( auto && p : surf_positions ) positions.push_back( p );
-      for( size_t face= 0 ; face < primalSurface->nbFaces(); ++face )
-        {
-          auto vertices = primalSurface->incidentVertices( face );
-          for ( auto& v : vertices ) v += base_idx;
-          faces.push_back( vertices );
-        }
-    }
-  auto primalSurf = polyscope::registerSurfaceMesh( "Digital surface", positions, faces);
-  primalSurf->addFaceScalarQuantity( "labels", V )
-    ->setMapRange( {0.0, double(n)} )
-    ->setColorMap( "rainbow" )
-    ->setEnabled( true );
+  // Need to convert the faces
+  for( size_t face= 0 ; face < primalSurface->nbFaces(); ++face )
+    faces.push_back( primalSurface->incidentVertices( face ) );
+  std::vector<RealPoint> positions = primalSurface->positions();
+  auto primalSurf = polyscope::registerSurfaceMesh
+    ( "Digital surface " + label, positions, faces);
   trace.endBlock();
-  main_surface = vec_surfs[0];
+  // The surface may be disconnected for now
 }
 
 CountedPtr<SH3::GrayScaleImage>
@@ -267,17 +205,8 @@ makeDilation( CountedPtr<SH3::GrayScaleImage> image_ptr )
   Domain D = image.domain();
   Point lo = D.lowerBound();
   Point up = D.upperBound();
-  Point dv[ 3 ] = { Point( 1,0,0 ), Point( 0,1,0 ), Point( 0,0,1 ) };
-  for ( auto p : D )
-    {
-      auto val = image( p );
-      for ( int i = 0; i < 3; i++ )
-        {
-          if ( p[i] > lo[i] ) val = std::max( val, image( p - dv[i] ) );
-          if ( p[i] < up[i] ) val = std::max( val, image( p + dv[i] ) );
-        }
-      output_ptr->setValue( p, val );
-    }
+  // TODO
+  // ...
   return output_ptr;
 }
 
@@ -291,17 +220,8 @@ makeErosion( CountedPtr<SH3::GrayScaleImage> image_ptr )
   Domain D = image.domain();
   Point lo = D.lowerBound();
   Point up = D.upperBound();
-  Point dv[ 3 ] = { Point( 1,0,0 ), Point( 0,1,0 ), Point( 0,0,1 ) };
-  for ( auto p : D )
-    {
-      auto val = image( p );
-      for ( int i = 0; i < 3; i++ )
-        {
-          if ( p[i] > lo[i] ) val = std::min( val, image( p - dv[i] ) );
-          if ( p[i] < up[i] ) val = std::min( val, image( p + dv[i] ) );
-        }
-      output_ptr->setValue( p, val );
-    }
+  // TODO
+  // ...
   return output_ptr;
 }
 
@@ -332,40 +252,26 @@ void mycallback()
 
   ImGui::SliderInt("Threshold", &threshold, 0, 255 ); //, "ratio = %.3f");
   ImGui::SliderInt("Minimum size", &minimum_size, 0, 10000 );
-  if (ImGui::Button("Isosurface"))
-    {
-      extractIsosurface( current_image, threshold );
-    }
-  ImGui::SameLine();
   if (ImGui::Button("Digital surface"))
     {
-      extractDigitalSurface( current_image, threshold );
+      extractDigitalSurface( current_image, threshold, "" );
     }
   ImGui::SameLine();
   if (ImGui::Button("Fill main surf."))
     {
-      lung_image = fillSurface( SH3::getSurfelRange( main_surface, params ),
-                                true );
+      // TODO
       refresh = true;
     }
   ImGui::SameLine();
   if (ImGui::Button("Select lungs"))
     {
-      for ( int i = 0; i < closing_radius; i++ )
-        lung_image = makeDilation( lung_image );
-      for ( int i = 0; i < closing_radius; i++ )
-        lung_image = makeErosion( lung_image );
-      // filter input image
-      auto itOut = output_image->begin();
-      for ( auto it = lung_image->begin(), ite = lung_image->end();
-            it != ite; ++it )
-        *itOut++ = (*it) > 128 ? *itOut : 0;
+      // TODO
       refresh = true;
     }
   ImGui::SameLine();
   if (ImGui::Button("Fill all surf."))
     {
-      output_image = fillSurface( all_surfels, false );
+      // TODO
       refresh = true;
     }
   
