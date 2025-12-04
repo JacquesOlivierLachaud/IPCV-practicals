@@ -34,8 +34,8 @@
 #include <polyscope/polyscope.h>
 #include <polyscope/surface_mesh.h>
 #include <polyscope/point_cloud.h>
-#include <Eigen/Dense>
-#include <Eigen/Sparse>
+//#include <Eigen/Dense>
+//#include <Eigen/Sparse>
 
 using namespace DGtal;
 using namespace Z3i;

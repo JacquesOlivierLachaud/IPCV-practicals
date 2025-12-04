@@ -39,10 +39,8 @@
 #include <polyscope/surface_mesh.h>
 #include <polyscope/point_cloud.h>
 
-#include "ConfigExamples.h"
-
-#include <Eigen/Dense>
-#include <Eigen/Sparse>
+// #include <Eigen/Dense>
+// #include <Eigen/Sparse>
 
 using namespace DGtal;
 using namespace Z3i;
@@ -201,12 +199,12 @@ void myCallback()
   }
 }
 
-int main()
+int main( int argc, char* argv[] )
 {
+  std::string filename = argc > 1 ? argv[1] : "../data/fertility-128.vol";
   auto params = SH3::defaultParameters() | SHG3::defaultParameters() |  SHG3::parametersGeometryEstimation();
   params("surfaceComponents", "All");
   params("r-radius", (double) radiusII);
-  std::string filename = examplesPath + std::string("/samples/bunny-128.vol");
   binary_image         = SH3::makeBinaryImage(filename, params );
   auto K               = SH3::getKSpace( binary_image, params );
   surface              = SH3::makeDigitalSurface( binary_image, K, params );

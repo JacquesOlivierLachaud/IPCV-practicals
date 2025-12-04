@@ -42,7 +42,12 @@ target_link_libraries(2D-estimation DGtal::DGtal)
 add_executable(3D-estimation practical-3D-estimation/3D-estimation.cpp)
 target_link_libraries(3D-estimation DGtal::DGtal polyscope)
 
-#add_executable(3D-estimation practical-3D-estimation/answers/3D-estimation.cpp)
-#target_link_libraries(3D-estimation DGtal::DGtal polyscope)
+## Utils
+
+add_executable(calculus utils/calculus.cpp)
+target_link_libraries(calculus DGtal::DGtal polyscope)
+
+add_executable(geodesics utils/geodesics.cpp)
+target_link_libraries(geodesics DGtal::DGtal polyscope)
 
 
