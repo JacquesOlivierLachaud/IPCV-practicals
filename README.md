@@ -6,10 +6,10 @@ Practicals for the IPCV lecture on digital geometry processing.
 
 Slides and several practicals are  based on a tutorial given at DGMM2022. Their original versions were written by [David Coeurjolly](https://perso.liris.cnrs.fr/david.coeurjolly), [Jacques-Olivier Lachaud](http://www.lama.univ-savoie.fr/pagesmembres/lachaud/People/LACHAUD-JO/person.html), [Tristan Roussillon](https://perso.liris.cnrs.fr/tristan.roussillon/), [Bertrand Kerautret](https://liris.cnrs.fr/page-membre/bertrand-kerautret).
 
-## The slides
+## Slides
 
-* Keynote: [part1](https://perso.liris.cnrs.fr/david.coeurjolly/talk/dgtal-tutorial/DGtalDGMM2022-part1.key), [part2](https://perso.liris.cnrs.fr/david.coeurjolly/talk/dgtal-tutorial/DGtalDGMM2022-part2.key)
-* pdf export: [part1](https://perso.liris.cnrs.fr/david.coeurjolly/talk/dgtal-tutorial/DGtalDGMM2022-part1.pdf), [part2](https://perso.liris.cnrs.fr/david.coeurjolly/talk/dgtal-tutorial/DGtalDGMM2022-part2.pdf)
+* [Lecture on digital geometry processing (PDF)](lecture/ipcv.pdf)
+* Other tutorials on DGtal: [part1 (keynote)](https://perso.liris.cnrs.fr/david.coeurjolly/talk/dgtal-tutorial/DGtalDGMM2022-part1.key) | [part1 (PDF)](https://perso.liris.cnrs.fr/david.coeurjolly/talk/dgtal-tutorial/DGtalDGMM2022-part1.pdf), [part2 (keynote](https://perso.liris.cnrs.fr/david.coeurjolly/talk/dgtal-tutorial/DGtalDGMM2022-part2.key) | [part2 (PDF)](https://perso.liris.cnrs.fr/david.coeurjolly/talk/dgtal-tutorial/DGtalDGMM2022-part2.pdf)
  
 ## Get the code
 
