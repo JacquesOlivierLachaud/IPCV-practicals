@@ -4,7 +4,7 @@ Practicals for the IPCV lecture on digital geometry processing.
 
 ![DGtal logo](https://github.com/DGtal-team/DGtal/blob/main/doc/images/logoDGtal-small.png)
 
-Slides and several practicals are  based on a tutorial given at DGMM2022. Their original versions were written by [David Coeurjolly](https://perso.liris.cnrs.fr/david.coeurjolly), [Jacques-Olivier Lachaud](http://www.lama.univ-savoie.fr/pagesmembres/lachaud/People/LACHAUD-JO/person.html), [Tristan Roussillon](https://perso.liris.cnrs.fr/tristan.roussillon/), [Bertrand Kerautret](https://liris.cnrs.fr/page-membre/bertrand-kerautret).
+Several practicals are variants of a tutorial given at DGMM2022. Their original versions were written by [David Coeurjolly](https://perso.liris.cnrs.fr/david.coeurjolly), [Jacques-Olivier Lachaud](http://www.lama.univ-savoie.fr/pagesmembres/lachaud/People/LACHAUD-JO/person.html), [Tristan Roussillon](https://perso.liris.cnrs.fr/tristan.roussillon/), [Bertrand Kerautret](https://liris.cnrs.fr/page-membre/bertrand-kerautret).
 
 ## Slides
 
@@ -79,7 +79,8 @@ After cloning the code, you may now have a look at each practical
 Normally, `cmake` should install automatically `DGtal` and required
 dependencies like `boost`, `zlib`, `polyscope`, `eigen`. However I
 have not checked if this work on all platforms. Here are a few more
-hints for specialized installations.
+hints for specialized installations. Have a look at [DGtal doc for
+users](https://www.dgtal.org/users/) for installation instructions.
 
 To build DGtal related examples, you would need:
   - C++17 enabled compiler (most c++ compilers are C+17)
