@@ -22,7 +22,7 @@ git clone https://github.com/JacquesOlivierLachaud/IPCV-practicals
 ## First build
 
 To build DGtal related examples, you would need:
-  - C++17 enabled compiler (most c++ compilers are C++17)
+  - C++20 enabled compiler (most c++ compilers are C++20)
   - a [cmake](https://cmake.org) client (at least 3.25)
   
 
