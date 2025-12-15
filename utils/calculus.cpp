@@ -56,6 +56,7 @@ typedef PolygonalCalculus<SH3::RealPoint,SH3::RealVector> PolyCalculus;
 
 // Global variables
 polyscope::SurfaceMesh* psMesh;
+polyscope::SurfaceMesh* psProjMesh=nullptr;
 SurfMesh                surfmesh;
 PolyCalculus*           ptrCalculus = nullptr;
 SHG3::RealVectors       tnormals;
@@ -63,6 +64,8 @@ SHG3::RealVectors       iinormals;
 CountedPtr<SH3::DigitalSurface> surface;
 CountedPtr<SH3::BinaryImage>    binary_image;
 Parameters              params;
+std::vector<std::vector<SH3::SurfaceMesh::Vertex>> faces;
+std::vector< RealPoint > centroids;
 
 // Other global variables
 std::vector<double> phiV;
@@ -109,13 +112,41 @@ void initQuantities()
   if ( ptrCalculus != nullptr ) delete ptrCalculus;
   ptrCalculus = nullptr;
   if (!useCorrectedCalculus)
-    ptrCalculus = new PolyCalculus(surfmesh);
+    {
+      ptrCalculus = new PolyCalculus(surfmesh);
+      psProjMesh  = psMesh;
+    }
   else
   {
     //Using the projection embedder
     ptrCalculus = new PolyCalculus(surfmesh);
     functors::EmbedderFromNormalVectors<Z3i::RealPoint, Z3i::RealVector> embedderFromNormals(iinormals,surfmesh);
     ptrCalculus->setEmbedder( embedderFromNormals );
+    std::vector< PolyCalculus::Real3dVector > projPos;
+    std::vector< std::vector< std::size_t > > projFaces;
+    std::vector< double > projPhi;
+    std::size_t idx = 0;
+    for ( auto f = 0; f < faces.size(); f++ )
+      {
+        std::vector< std::size_t > vertices { idx, idx + 1, idx + 2, idx + 3 };
+        projFaces.push_back( vertices );
+        RealPoint c = RealPoint::zero;
+        for ( auto v : faces[ f ] )
+          {
+            projPhi.push_back( phiVertex( v ) );
+            auto ppos = embedderFromNormals( f, v );
+            projPos.push_back( ppos );
+            c += ppos;
+          }
+        c   /= 4;
+        projPos[ idx++ ] += centroids[ f ] - c;
+        projPos[ idx++ ] += centroids[ f ] - c;
+        projPos[ idx++ ] += centroids[ f ] - c;
+        projPos[ idx++ ] += centroids[ f ] - c;
+        //idx += 4;
+      }
+    psProjMesh = polyscope::registerSurfaceMesh("Corrected surface", projPos, projFaces);
+    psProjMesh->addVertexScalarQuantity("Phi", projPhi);
   }
 
   PolyCalculus& calculus = *ptrCalculus;
@@ -152,6 +183,12 @@ void initQuantities()
   psMesh->addFaceVectorQuantity("Normals", normals);
   psMesh->addFaceScalarQuantity("Face area", faceArea);
   psMesh->addFaceVectorQuantity("Vector area", vectorArea);
+
+  psProjMesh->addFaceVectorQuantity("Gradients", gradients);
+  psProjMesh->addFaceVectorQuantity("co-Gradients", cogradients);
+  psProjMesh->addFaceVectorQuantity("Normals", normals);
+  psProjMesh->addFaceScalarQuantity("Face area", faceArea);
+  psProjMesh->addFaceVectorQuantity("Vector area", vectorArea);
   
   //polyscope::registerPointCloud("Centroids", centroids);
 }
@@ -194,7 +231,6 @@ int main()
   auto primalSurface   = SH3::makePrimalSurfaceMesh(c2i, surface);
   
   // Convert faces to appropriate indexed format
-  std::vector<std::vector<SH3::SurfaceMesh::Vertex>> faces;
   for(auto face= 0 ; face < primalSurface->nbFaces(); ++face)
     faces.push_back(primalSurface->incidentVertices( face ));
   
@@ -205,6 +241,9 @@ int main()
                       positions.end(),
                       faces.begin(),
                       faces.end());
+  centroids.resize( surfmesh.nbFaces() );
+  for( auto f = 0; f < surfmesh.nbFaces(); ++f )
+    centroids[ f ] = surfmesh.faceCentroid( f );
   
   // Initialize polyscope
   polyscope::init();

@@ -2,7 +2,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.20)
 project(IPCV-tutorials)
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/recipes)
-set(CMAKE_CXX_STANDARD 17)
+# C++20 (instead of C++17) is necessary for windows environment.
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(dgtal)
