@@ -1,3 +1,27 @@
+/**
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU Lesser General Public License as
+ *  published by the Free Software Foundation, either version 3 of the
+ *  License, or  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+/**
+ * @file scaleaxis.cpp
+ * @author David Coeurjolly (\c david.coeurjolly@liris.cnrs.fr )
+ * Laboratoire d'InfoRmatique en Image et Systemes d'information - LIRIS (CNRS, UMR 5205), CNRS, France
+ *
+ * @author Jacques-Olivier Lachaud (\c jacques-olivier.lachaud@univ-savoie.fr )
+ * Laboratory of Mathematics (CNRS, UMR 5127), University of Savoie, France
+ * @date 2025/12/04
+ */
 #include <iostream>
 #include <vector>
 #include <array>
@@ -46,56 +70,27 @@ void computeLargestInscribedBall()
 {
   Predicate predicate(*binary_image, 0);
   Z3i::L2Metric l2metric;
-  DT distance(binary_image->domain() , predicate, l2metric);
-  DT::Value maxval = 0.0;
-  Z3i::Point maxcenter;
   
-  for(const auto &p: distance.domain())
-    if (distance(p) > maxval)
-    {
-      maxval = distance(p);
-      maxcenter = p;
-    }
-  
-  //Visualization of a point + radius as a ball
-  std::vector<Z3i::Point> listPoints;
-  std::vector<double> listRadius;
-  listPoints.push_back(maxcenter); //Single ball.
-  listRadius.push_back(maxval);
-  auto ps = polyscope::registerPointCloud("Largest inscribed ball", listPoints);
-  auto q  = ps->addScalarQuantity("radius", listRadius);
-  ps->setPointRadiusQuantity(q,false);
+  /*
+  *
+  *
+  * TODO
+  *
+  *
+  */
 }
 
 void computeRDMA()
 {
   Predicate predicate(*binary_image, 0);
   Z3i::L2Metric l2metric;
-  DT distance(binary_image->domain() , predicate, l2metric);
-  
-  SquaredDT scaledDT(distance.domain());
-  for(auto p: distance.domain())
-    scaledDT.setValue(p, (p-distance.getVoronoiSite(p)).squaredNorm());
-  
-  Z3i::L2PowerMetric l2powermetric;
-  PowerMapType powermap(binary_image->domain(), scaledDT, l2powermetric );
-  auto rdma = ReducedMedialAxis<PowerMapType>::getReducedMedialAxisFromPowerMap(powermap);
-  
-  //Visualization of a point + radius as a ball
-  std::vector<Z3i::Point> ballCenters;
-  std::vector<double> ballRadii;
-  for(const auto &p: rdma.domain() )
-  {
-    if (rdma(p) != 0)
-    {
-      ballCenters.push_back(p); //Ball center.
-      ballRadii.push_back(distance(p)); //Ball radius
-    }
-  }
-  trace.info()<<"Number of MA balls = "<<ballCenters.size();
-  auto ps = polyscope::registerPointCloud("RDMA", ballCenters);
-  auto q  = ps->addScalarQuantity("radius", ballRadii);
-  ps->setPointRadiusQuantity(q,false);
+  /*
+   *
+   *
+   * TODO
+   *
+   *
+   */
   
 }
 
@@ -103,32 +98,13 @@ void computeScaleAxis()
 {
   Predicate predicate(*binary_image, 0);
   Z3i::L2Metric l2metric;
-  DT distance(binary_image->domain() , predicate, l2metric);
-  
-  //Squared distance image for the powermap
-  SquaredDT scaledDT(distance.domain());
-  for(auto p: distance.domain())
-    scaledDT.setValue(p, scaleAxis*scaleAxis*(p-distance.getVoronoiSite(p)).squaredNorm());
-  
-  Z3i::L2PowerMetric l2powermetric;
-  PowerMapType powermap(binary_image->domain(), scaledDT, l2powermetric );
-  auto rdma = ReducedMedialAxis<PowerMapType>::getReducedMedialAxisFromPowerMap(powermap);
-  
-  //Visualization of a point + radius as a ball
-  std::vector<Z3i::Point> listPoints;
-  std::vector<double> listRadius;
-  
-  for(const auto &p: rdma.domain() )
-  {
-    if (rdma(p) != 0)
-    {
-      listPoints.push_back(p); //Ball center.
-      listRadius.push_back(1.0/scaleAxis * std::sqrt(scaledDT(p))); //Ball radius
-    }
-  }
-  auto ps = polyscope::registerPointCloud("Scale Axis", listPoints);
-  auto q  = ps->addScalarQuantity("radius", listRadius);
-  ps->setPointRadiusQuantity(q,false);
+  /*
+   *
+   *
+   * TODO
+   *
+   *
+   */
 }
 
 void myCallback()
@@ -142,7 +118,7 @@ void myCallback()
   
   ImGui::SliderFloat("Scale axis parameter", &scaleAxis, 1.0, 10.0);
   
-  if (ImGui::Button("COmpute scale axis"))
+  if (ImGui::Button("Compute scale axis"))
     computeScaleAxis();
   
 }
