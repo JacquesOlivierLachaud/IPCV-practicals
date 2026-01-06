@@ -80,6 +80,7 @@ buildInitialSlice( std::string name, Point lo, Point up, int axis )
   sup[ axis ] = lo[ axis ];
   Point s = sup - slo + Point::diagonal(1);
   Point t = s + Point::diagonal(1);
+  t[ axis ] = 1;
   const int nb_faces    = s[ 0 ] * s[ 1 ] * s[ 2 ];
   const int nb_vertices = t[ 0 ] * t[ 1 ] * t[ 2 ];
   std::vector<RealPoint> positions( nb_vertices, RealPoint::zero );
@@ -99,14 +100,18 @@ buildInitialSlice( std::string name, Point lo, Point up, int axis )
     }
   idx = 0;
   std::vector<std::vector<size_t>> faces( nb_faces );
-  for ( size_t y = lo[ j ]; y <= up[ j ]; y++ )
-    for ( size_t x = lo[ i ]; x <= up[ i ]; x++ )
-      faces[ idx++ ] = std::vector<size_t>( {
-          t[ i ] * y + x,
-          t[ i ] * y + x + 1,
-          t[ i ] * ( y + 1 ) + x + 1,
-          t[ i ] * ( y + 1 ) + x
-        } );
+  for ( int y = lo[ j ]; y <= up[ j ]; y++ )
+    for ( int x = lo[ i ]; x <= up[ i ]; x++ )
+      {
+        std::size_t ix = static_cast< std::size_t >( x - lo[ i ] );
+        std::size_t iy = static_cast< std::size_t >( y - lo[ j ] );
+        faces[ idx++ ] = std::vector<size_t>( {
+            t[ i ] * iy + ix,
+            t[ i ] * iy + ix + 1,
+            t[ i ] * ( iy + 1 ) + ix + 1,
+            t[ i ] * ( iy + 1 ) + ix
+          } );
+      }
   return polyscope::registerSurfaceMesh( name, positions, faces);
 }
   
@@ -119,8 +124,9 @@ updateSlice( CountedPtr<SH3::GrayScaleImage> image,
   Point sup = up;
   sup[ axis ] = pos;
   slo[ axis ] = pos;
-  Point s = sup - slo + Point::diagonal(1);
-  Point t = s + Point::diagonal(1);
+  Point   s = sup - slo + Point::diagonal(1);
+  Point   t = s + Point::diagonal(1);
+  t[ axis ] = 1;
   const int nb_faces    = s[ 0 ] * s[ 1 ] * s[ 2 ];
   const int nb_vertices = t[ 0 ] * t[ 1 ] * t[ 2 ];
   std::vector<RealPoint> positions( nb_vertices );
@@ -289,14 +295,19 @@ int main( int argc, char* argv[] )
   // Read voxel object and hands surfaces to polyscope
   params = SH3::defaultParameters()| SHG3::defaultParameters() | SHG3::parametersGeometryEstimation();
   params( "closed", 1)("surfaceComponents", "All");
-  first_image  = SH3::makeGrayScaleImage( filename );  
-  second_image = (filename2 != "") ? SH3::makeGrayScaleImage( filename2 ) : first_image;  
+  first_image  = SH3::makeGrayScaleImage( filename );
+  std::cout << "Read image " << filename << "\n"; 
+ second_image = (filename2 != "") ? SH3::makeGrayScaleImage( filename2 ) : first_image;  
   K = SH3::getKSpace( first_image );
   Point lo = K.lowerBound();
   Point up = K.upperBound();
+  std::cout << "Build KSpace lo=" << lo << " hi=" << up << "\n";
   sliceXSurf = buildInitialSlice( "Slice X", lo, up, 0 );
+  std::cout << "Build slice X" << "\n";
   sliceYSurf = buildInitialSlice( "Slice Y", lo, up, 1 );
+  std::cout << "Build slice Y" << "\n";
   sliceZSurf = buildInitialSlice( "Slice Z", lo, up, 2 );
+  std::cout << "Build slice Z" << "\n";
   // extractIsosurface( threshold ); 
   // Give the hand to polyscope
   polyscope::state::userCallback = mycallback;
